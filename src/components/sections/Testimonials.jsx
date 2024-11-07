@@ -1,25 +1,41 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Testimonials = ({ testimonialsData }) => {
   const { title, testimonials } = testimonialsData;
   const [startIndex, setStartIndex] = useState(0);
+  const [testimonialsToShow, setTestimonialsToShow] = useState(1);
 
-  // Function to navigate to the next testimonials
+  // Detect screen size and update the number of testimonials to show
+  useEffect(() => {
+    const updateTestimonialsToShow = () => {
+      if (window.innerWidth < 768) {
+        setTestimonialsToShow(1); // Show one testimonial on small screens
+      } else {
+        setTestimonialsToShow(2); // Show two testimonials on medium and larger screens
+      }
+    };
+
+    updateTestimonialsToShow();
+    window.addEventListener("resize", updateTestimonialsToShow);
+    
+    return () => window.removeEventListener("resize", updateTestimonialsToShow);
+  }, []);
+
+  // Define testimonials to display based on the current screen size
+  const visibleTestimonials = testimonials.slice(startIndex, startIndex + testimonialsToShow);
+
   const nextTestimonials = () => {
     setStartIndex((prevIndex) => 
-      prevIndex + 2 < testimonials.length ? prevIndex + 1 : 0
+      (prevIndex + testimonialsToShow) % testimonials.length
     );
   };
 
-  // Function to navigate to the previous testimonials
   const prevTestimonials = () => {
     setStartIndex((prevIndex) => 
-      prevIndex - 2 >= 0 ? prevIndex - 2 : testimonials.length - 1
+      (prevIndex - testimonialsToShow + testimonials.length) % testimonials.length
     );
   };
-
-  const visibleTestimonials = testimonials.slice(startIndex, startIndex + 2);
 
   return (
     <section className="py-20 font-ibm max-w-7xl mx-auto px-4 relative">
@@ -34,7 +50,7 @@ const Testimonials = ({ testimonialsData }) => {
                   key={index} 
                   className="hs-carousel-slide px-5 w-full sm:w-2/5 lg:w-2/5"
                 >
-                  <div className="bg-gray-100 rounded-lg p-8 shadow-md flex flex-col justify-between h-80">
+                  <div className="bg-gray-100 rounded-lg p-8 shadow-md flex flex-col justify-between h-[22rem]">
                     <div className="flex flex-row gap-2">
                       <div>
                         <img
@@ -62,7 +78,6 @@ const Testimonials = ({ testimonialsData }) => {
         <div className="hs-carousel-pagination flex justify-center absolute bottom-3 start-0 end-0 space-x-2"></div>
       </div>
 
-      
       <div className="absolute inset-y-0 left-0 right-0 flex justify-between items-center sm:px-10 md:px-32">
         <button
           type="button"

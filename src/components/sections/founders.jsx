@@ -4,10 +4,10 @@ const Founders = ({ foundersData }) => {
   const { title, founders } = foundersData;
 
   return (
-    <section className="py-10 mb-10 font-ibm  mx-auto text-center">
+    <section className="py-10 w-[90%] mb-10 font-ibm  mx-auto text-center">
       <h2 className="text-2xl md:text-4xl font-bold mb-10">{title}</h2>
       
-      <div className="flex flex-wrap justify-center gap-40">
+      <div className="flex flex-wrap justify-center gap-12">
         {founders.map((founder, index) => (
           <div key={index} className="text-center">
             <img
