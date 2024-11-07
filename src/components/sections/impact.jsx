@@ -87,7 +87,7 @@ export default function ImpactSection() {
 
     return (
         <section className="bg-black text-white py-20 font-ibm">
-            <div className="max-w-7xl mx-auto px-4">
+            <div className="mx-auto px-4">
                 <h2 className="text-2xl md:text-4xl font-bold mb-10">Our impact in numbers</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 text-xl gap-10 mb-12">
                     {impactStats.map((stat, index) => (
