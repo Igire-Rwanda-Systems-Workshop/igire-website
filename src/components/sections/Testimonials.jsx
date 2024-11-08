@@ -74,7 +74,6 @@ const Testimonials = ({ testimonialsData }) => {
           </div>
         </div>
 
-        {/* Pagination */}
         <div className="hs-carousel-pagination flex justify-center absolute bottom-3 start-0 end-0 space-x-2"></div>
       </div>
 
