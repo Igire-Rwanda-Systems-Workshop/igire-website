@@ -8,46 +8,88 @@ import { Label } from "@/components/ui/label";
 
 const AddUserPage = () => {
     const [formData, setFormData] = useState({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
-        role: "",
-        supervisor: "",
+        position: "",
+        gender: "",
+        telephone: "",
+        supervisorId: "",
+        password: "",
     });
 
     const handleChange = (field, value) => {
         setFormData({ ...formData, [field]: value });
     };
 
-    const handleAddUser = () => {
-        alert(`User added successfully! Name: ${formData.name}, Email: ${formData.email}, Role: ${formData.role}, Supervisor: ${formData.supervisor}`);
-        setFormData({ name: "", email: "", role: "", supervisor: "" });
+    const handleAddUser = async () => {
+        const payload = {
+            supervisorId: formData.supervisorId,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            position: formData.position,
+            gender: formData.gender,
+            telephone: formData.telephone,
+            password: "password", // Example password
+        };
+
+        try {
+            const response = await fetch("https://iro-employee-bn.onrender.com/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                alert("User added successfully!");
+                setFormData({
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                    position: "",
+                    gender: "",
+                    telephone: "",
+                    supervisorId: "",
+                    password: "",
+                });
+            } else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message || "Failed to add user"}`);
+            }
+        } catch (error) {
+            alert("An error occurred. Please try again.");
+            console.error(error);
+        }
     };
 
     return (
         <div className="flex py-6">
-            <div className="mx-2 md:mx-6  w-full">
-                <h1 className=" text-xl font-bold mb-6">Add New Employee</h1>
+            <div className="mx-2 md:mx-6 w-full">
+                <h1 className="text-xl font-bold mb-6">Add New Employee</h1>
 
-                <div className="flex gap-5  bg-white p-6 rounded-xl shadow-md">
+                <div className="flex gap-5 bg-white p-6 rounded-xl shadow-md">
                     <div className="space-y-4 w-full">
                         <div className="flex flex-col">
-                            <Label htmlFor="name">FIrst Name</Label>
+                            <Label htmlFor="firstName">First Name</Label>
                             <Input
-                                id="name"
+                                id="firstName"
                                 placeholder="Enter first name"
-                                value={formData.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
+                                value={formData.firstName}
+                                onChange={(e) => handleChange("firstName", e.target.value)}
                                 className="mt-2"
                             />
                         </div>
 
                         <div className="flex flex-col">
-                            <Label htmlFor="name">Last Name</Label>
+                            <Label htmlFor="lastName">Last Name</Label>
                             <Input
-                                id="name"
+                                id="lastName"
                                 placeholder="Enter last name"
-                                value={formData.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
+                                value={formData.lastName}
+                                onChange={(e) => handleChange("lastName", e.target.value)}
                                 className="mt-2"
                             />
                         </div>
@@ -64,7 +106,7 @@ const AddUserPage = () => {
                         </div>
 
                         <div className="flex flex-col">
-                            <Label htmlFor="telephone">telephone</Label>
+                            <Label htmlFor="telephone">Telephone</Label>
                             <Input
                                 id="telephone"
                                 placeholder="Enter telephone"
@@ -77,7 +119,7 @@ const AddUserPage = () => {
 
                     <div className="space-y-4 w-full">
                         <div className="flex flex-col">
-                            <Label htmlFor="name" className="mb-2">Gender</Label>
+                            <Label htmlFor="gender" className="mb-2">Gender</Label>
                             <Select
                                 id="gender"
                                 value={formData.gender}
@@ -87,45 +129,31 @@ const AddUserPage = () => {
                                     <SelectValue placeholder="Select gender" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Human Resource">Male</SelectItem>
-                                    <SelectItem value="Project Director">Female</SelectItem>
-                                    <SelectItem value="Operation Manager">Others</SelectItem>
+                                    <SelectItem value="male">Male</SelectItem>
+                                    <SelectItem value="female">Female</SelectItem>
+                                    <SelectItem value="others">Others</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="flex flex-col">
-                            <Label htmlFor="role" className="mb-2">Position</Label>
+                            <Label htmlFor="position" className="mb-2">Position</Label>
                             <Select
-                                id="role"
-                                value={formData.role}
-                                onValueChange={(value) => handleChange("role", value)}
+                                id="position"
+                                value={formData.position}
+                                onValueChange={(value) => handleChange("position", value)}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
+                                    <SelectValue placeholder="Select position" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Human Resource">Human Resources</SelectItem>
-                                    <SelectItem value="Project Director">Project Director</SelectItem>
                                     <SelectItem value="Operation Manager">Operation Manager</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <Label htmlFor="supervisor" className="mb-2">Supervisor</Label>
-                            <Select
-                                id="supervisor"
-                                value={formData.supervisor}
-                                onValueChange={(value) => handleChange("supervisor", value)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select supervisor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Milton Doe">Milton Doe</SelectItem>
-                                    <SelectItem value="Danny Wood">Danny Wood</SelectItem>
-                                    <SelectItem value="Shawn Den">Shawn Den</SelectItem>
+                                    <SelectItem value="Human Resources">Human Resources</SelectItem>
+                                    <SelectItem value="Program Manager">Program Manager</SelectItem>
+                                    <SelectItem value="Finance Manger">Finance Manger</SelectItem>
+                                    <SelectItem value="CEO">CEO</SelectItem>
+                                    <SelectItem value="Interns">Interns</SelectItem>
+                                    <SelectItem value="Tutor">Tutor</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -135,10 +163,16 @@ const AddUserPage = () => {
                 <div className="mt-6">
                     <Button
                         onClick={handleAddUser}
-                        disabled={!formData.name || !formData.email || !formData.role || !formData.supervisor}
+                        disabled={
+                            !formData.firstName ||
+                            !formData.lastName ||
+                            !formData.email ||
+                            !formData.position ||
+                            !formData.gender
+                        }
                         className="bg-[#0FA958] text-white px-8 py-2 disabled:bg-gray-400"
                     >
-                        Add user
+                        Add User
                     </Button>
                 </div>
             </div>
