@@ -48,14 +48,14 @@ export default function AddUser() {
   
       console.log("Response Status:", response.status);
   
-      // Check if the response is OK before calling .json()
+      
       if (!response.ok) {
         throw new Error(`Failed to create user. Status: ${response.status}`);
       }
   
-      const data = await response.json();  // Read the response body as JSON
+      const data = await response.json();  
       alert("User added successfully!");
-      console.log("Response Data:", data);  // Log the response data for debugging
+      console.log("Response Data:", data);  
   
     } catch (error) {
       console.error("Error in fetch:", error);

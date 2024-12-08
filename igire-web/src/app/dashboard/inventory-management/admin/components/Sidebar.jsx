@@ -108,7 +108,7 @@ const SideBar = () => {
             isCollapsed={isSidebarCollapsed}
           />
           <SidebarLink
-            href="/settings"
+            href="/dashboard/inventory-management/admin/profile"
             icon={SlidersHorizontal}
             label="Settings"
             isCollapsed={isSidebarCollapsed}

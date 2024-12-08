@@ -1,89 +1,183 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import CreateCategory from "../../categories/CreateCategory";
+
+const API_BASE_URL = "https://iro-website-bn-1.onrender.com";
+
 const AddProductForm = () => {
   const [formData, setFormData] = useState({
-    category: "",
+    prod_id: "",
+    categoryId: "",
     name: "",
     brand: "",
     dimensions: "",
     location: "",
-    status: "",
-    condition: "",
-    dateOfEntry: "",
+    status: "available", 
+    condition: "new", 
     image: null,
-    borrowedBy: {
-      borrowerName: "",
-      nationalId: "",
-      productId: "",
-      borrowingDate: "",
-      returningDate: "",
-    },
   });
 
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
 
-  const [newCategory, setNewCategory] = useState({ name: "", icon: "" });
-  const [categories, setCategories] = useState(["electronics", "furniture", "stationery"]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Unauthorized. Please log in.");
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/Inventory/category/getAll`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Send the token in headers
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories.");
+        }
+
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          setCategories([]);
+        }
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+        setError(err.message);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "image") {
-      setFormData({ ...formData, [name]: files[0] });
-    } else if (name in formData.borrowedBy) {
-      setFormData({
-        ...formData,
-        borrowedBy: { ...formData.borrowedBy, [name]: value },
-      });
+      setFormData({ ...formData, image: files[0] });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Data Submitted:", formData);
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-  const addCategory = () => {
-    if (newCategory.name) {
-      setCategories([...categories, newCategory.name]);
-      setNewCategory({ name: "", icon: "" });
+  const productData = new FormData();
+  productData.append("prod_id", formData.prod_id);
+  productData.append("name", formData.name);
+  productData.append("brand", formData.brand);
+  productData.append("dimensions", formData.dimensions);
+  productData.append("categoryId", formData.categoryId);
+  productData.append("location", formData.location);
+  productData.append("status", formData.status);
+  productData.append("condition", formData.condition);
+  if (formData.image) {
+    productData.append("productImage", formData.image);
+  }
+
+  
+  console.log("Submitting Product Data:");
+
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Authentication token is missing or invalid.");
     }
-  };
+    console.log("Form Data before submission:", formData);
+    console.log("token:", token);
+
+
+    const response = await fetch(`${API_BASE_URL}/api/Inventory/product/create-product`, {
+      method: "POST",
+      body: productData,
+      headers: {
+        Authorization: `Bearer ${token}`, // Ensure the token is included in the header
+      },
+    });
+
+    if (response.ok) {
+      alert("Product added successfully!");
+    } else {
+      const error = await response.json();
+      alert(`Failed to add product: ${error.message}`);
+      console.error("Error:", error);
+    }
+  } catch (err) {
+    alert("An error occurred. Please try again.");
+    console.error("Error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="max-w-4xl mx-auto p-8">
       <div className="flex flex-row justify-between items-center mb-6">
         <h1 className="text-lg font-semibold">Add New Product</h1>
-        <CreateCategory addCategory={addCategory} />
+        <CreateCategory />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-white border rounded-md p-12">
-        {/* Product Information Section */}
+      <form onSubmit={handleSubmit} className="space-y-8 bg-white border rounded-xl p-6">
         <section>
           <h2 className="text-xl font-semibold mb-4">Product Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label htmlFor="category">Product Category</Label>
+              <Label htmlFor="prod_id">Product ID</Label>
+              <Input
+                id="prod_id"
+                name="prod_id"
+                type="text"
+                placeholder="Enter product ID"
+                value={formData.prod_id}
+                onChange={handleChange}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="categoryId">Product Category</Label>
               <Select
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                value={formData.categoryId}
               >
                 <SelectTrigger className="w-full mt-1">
-                  {formData.category || "Select category"}
+                  {formData.categoryId
+                    ? categories.find((cat) => cat._id === formData.categoryId)?.categoryName || "Select category"
+                    : "Select category"}
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category, index) => (
-                    <SelectItem key={index} value={category}>
-                      {category}
+                  {loading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading categories...
                     </SelectItem>
-                  ))}
+                  ) : categories.length > 0 ? (
+                    categories.map((category) => (
+                      <SelectItem key={category._id} value={category._id}>
+                        {category.categoryName}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-categories" disabled>
+                      No categories available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -151,146 +245,14 @@ const AddProductForm = () => {
                 className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="dateOfEntry">Date of Entry</Label>
-              <Input
-                id="dateOfEntry"
-                name="dateOfEntry"
-                type="date"
-                value={formData.dateOfEntry}
-                onChange={handleChange}
-                className="mt-1"
-              />
-            </div>
           </div>
-          <div className="mt-8 justify-between flex ">
-          <Button className="bg-black text-white p-4">Update </Button>
-        
-        </div>
-        </section>
 
-        <Separator />
-
-        {/* Status and Condition Section */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Status and Condition</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger className="w-full mt-1">
-                  {formData.status || "Select status"}
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="borrowed">Borrowed</SelectItem>
-                  <SelectItem value="stolen">Stolen</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="condition">Condition</Label>
-              <Select
-                onValueChange={(value) => setFormData({ ...formData, condition: value })}
-              >
-                <SelectTrigger className="w-full mt-1">
-                  {formData.condition || "Select condition"}
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="used">Used</SelectItem>
-                  <SelectItem value="damaged">Damaged</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-           
-          </div>
-          <div className="mt-8 justify-between flex ">
-          <Button className="bg-black text-white p-4">Update status</Button>
-          <Button className="bg-black text-white p-4">Update condition</Button>
-        </div>
-        </section>
-
-        <Separator />
-
-        {/* Borrower Details Section */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Borrower Details (Optional)</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="borrowerName">Borrower Name</Label>
-              <Input
-                id="borrowerName"
-                name="borrowerName"
-                type="text"
-                placeholder="Enter borrower name"
-                value={formData.borrowedBy.borrowerName}
-                onChange={handleChange}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="nationalId">National ID</Label>
-              <Input
-                id="nationalId"
-                name="nationalId"
-                type="text"
-                placeholder="Enter national ID"
-                value={formData.borrowedBy.nationalId}
-                onChange={handleChange}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="productId">Product ID</Label>
-              <Input
-                id="productId"
-                name="productId"
-                type="text"
-                placeholder="Enter product ID"
-                value={formData.borrowedBy.productId}
-                onChange={handleChange}
-                className="mt-1"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="borrowingDate">Borrowing Date</Label>
-                <Input
-                  id="borrowingDate"
-                  name="borrowingDate"
-                  type="date"
-                  value={formData.borrowedBy.borrowingDate}
-                  onChange={handleChange}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="returningDate">Returning Date</Label>
-                <Input
-                  id="returningDate"
-                  name="returningDate"
-                  type="date"
-                  value={formData.borrowedBy.returningDate}
-                  onChange={handleChange}
-                  className="mt-1"
-                />
-              </div>
-            </div>
+          <div className="mt-8 w-full">
+            <Button type="submit" className="bg-black w-full text-white" disabled={loading}>
+              {loading ? "Adding..." : "Add"}
+            </Button>
           </div>
         </section>
-
-        <div className="mt-8 justify-between flex ">
-          <Button className="bg-black text-white p-4">Mark as borrowed</Button>
-          <Button className="bg-black text-white p-4">Mark as returned</Button>
-        </div>
       </form>
     </div>
   );

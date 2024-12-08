@@ -1,273 +1,299 @@
-"use client";
+// "use client";
 
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-
-export default function EditStock({ open, onOpenChange, selectedRowData, onSave }) {
-  const [formData, setFormData] = useState({
-    category: "",
-    name: "",
-    brand: "",
-    dimensions: "",
-    location: "",
-    status: "",
-    condition: "",
-    dateOfEntry: "",
-    borrowedBy: {
-      borrowerName: "",
-      nationalId: "",
-      productId: "",
-      borrowingDate: "",
-      returningDate: "",
-    },
-  });
-
-  const [imageFile, setImageFile] = useState(null);
-
-  // Sync formData with selectedRowData when the dialog is opened
-  useEffect(() => {
-    if (selectedRowData) {
-      setFormData({
-        ...selectedRowData,
-        borrowedBy: selectedRowData.borrowedBy || {
-          borrowerName: "",
-          nationalId: "",
-          productId: "",
-          borrowingDate: "",
-          returningDate: "",
-        },
-      });
-    }
-  }, [selectedRowData]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    // Check for nested fields in "borrowedBy"
-    if (name in formData.borrowedBy) {
-      setFormData((prev) => ({
-        ...prev,
-        borrowedBy: {
-          ...prev.borrowedBy,
-          [name]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
-  };
-
-  const handleSave = () => {
-    // Call onSave and pass the updated data
-    onSave({ ...formData, imageFile });
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
-        <DialogHeader>
-          <DialogTitle>Edit Product</DialogTitle>
-        </DialogHeader>
-        <form>
-          {/* General Details */}
-          <div className="grid md:grid-cols-3 text-gray-700 gap-4">
-            <label>
-              Category:
-              <Input
-                type="text"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="border px-2 py-1 rounded-md w-full"
-              />
-            </label>
-            <label>
-              Name:
-              <Input
-                type="text"      
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="border px-2 py-1 rounded-md w-full"
-              />
-            </label>
-            <label>
-              Brand:
-              <Input
-                type="text"
-                name="brand"
-                value={formData.brand}
-                onChange={handleChange}
-                className="border px-2 py-1 rounded-md w-full"
-              />
-            </label>
-            <label>
-              Dimensions:
-              <Input
-                type="text"
-                name="dimensions"
-                value={formData.dimensions}
-                onChange={handleChange}
-                className="border px-2 py-1 rounded-md w-full"
-              />
-            </label>
-            <label>
-              Location:
-              <Input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className="border px-2 py-1 rounded-md w-full"
-              />
-            </label>
-          </div>
-
-          
-
-          {/* Product Status */}
-          <section>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Status */}
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger className="w-full mt-1">
-                    {formData.status || "Select status"}
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="borrowed">Borrowed</SelectItem>
-                    <SelectItem value="stolen">Stolen</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Condition */}
-              <div>
-                <Label htmlFor="condition">Condition</Label>
-                <Select
-                  onValueChange={(value) => setFormData({ ...formData, condition: value })}
-                >
-                  <SelectTrigger className="w-full mt-1">
-                    {formData.condition || "Select condition"}
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="used">Used</SelectItem>
-                    <SelectItem value="damaged">Damaged</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Date of Entry */}
-              <div>
-                <Label htmlFor="dateOfEntry">Date of Entry</Label>
-                <Input
-                  id="dateOfEntry"
-                  name="dateOfEntry"
-                  type="date"
-                  value={formData.dateOfEntry}
-                  onChange={handleChange}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </section>
+// import React, { useState } from "react";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+// import { Label } from "@/components/ui/label";
+// import { Separator } from "@/components/ui/separator";
+// import CreateCategory from "../../categories/createCategory";
+// const AddProductForm = () => {
+//   const [formData, setFormData] = useState({
+//     category: "",
+//     name: "",
+//     brand: "",
+//     dimensions: "",
+//     location: "",
+//     status: "",
+//     condition: "",
+//     dateOfEntry: "",
+//     image: null,
+//     borrowedBy: {
+//       borrowerName: "",
+//       nationalId: "",
+//       productId: "",
+//       borrowingDate: "",
+//       returningDate: "",
+//     },
+//   });
 
 
-          {/* Borrower Details */}
-          <section>
-            <h2 className="text-lg font-semibold mt-4">Borrower Details (if applicable)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="borrowerName">Borrower Name</Label>
-                <Input
-                  id="borrowerName"
-                  name="borrowerName"
-                  type="text"
-                  placeholder="Enter borrower name"
-                  value={formData.borrowedBy.borrowerName}
-                  onChange={handleChange}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label >National ID:
-                <Input
-                  id="nationalId"
-                  name="nationalId"
-                  type="text"
-                  placeholder="Enter national ID"
-                  value={formData.borrowedBy.nationalId}
-                  onChange={handleChange}
-                  className="mt-1"
-                /></Label>
-              </div>
-              <div>
-                <Label htmlFor="productId">Product ID</Label>
-                <Input
-                  id="productId"
-                  name="productId"
-                  type="text"
-                  placeholder="Enter product ID"
-                  value={formData.borrowedBy.productId}
-                  onChange={handleChange}
-                  className="mt-1"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="borrowingDate">Borrowing Date</Label>
-                  <Input
-                    id="borrowingDate"
-                    name="borrowingDate"
-                    type="date"
-                    value={formData.borrowedBy.borrowingDate}
-                    onChange={handleChange}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="returningDate">Returning Date</Label>
-                  <Input
-                    id="returningDate"
-                    name="returningDate"
-                    type="date"
-                    value={formData.borrowedBy.returningDate}
-                    onChange={handleChange}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-        </form>
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)} className="bg-gray-300">
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleSave}>
-            Save
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+
+//   const [newCategory, setNewCategory] = useState({ name: "", icon: "" });
+//   const [categories, setCategories] = useState(["electronics", "furniture", "stationery"]);
+
+//   const handleChange = (e) => {
+//     const { name, value, files } = e.target;
+//     if (name === "image") {
+//       setFormData({ ...formData, [name]: files[0] });
+//     } else if (name in formData.borrowedBy) {
+//       setFormData({
+//         ...formData,
+//         borrowedBy: { ...formData.borrowedBy, [name]: value },
+//       });
+//     } else {
+//       setFormData({ ...formData, [name]: value });
+//     }
+//   };
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     console.log("Form Data Submitted:", formData);
+//   };
+
+//   const addCategory = () => {
+//     if (newCategory.name) {
+//       setCategories([...categories, newCategory.name]);
+//       setNewCategory({ name: "", icon: "" });
+//     }
+//   };
+
+//   return (
+//     <div className="max-w-4xl mx-auto p-8">
+//       <div className="flex flex-row justify-between items-center mb-6">
+//         <h1 className="text-lg font-semibold">Add New Product</h1>
+//         <CreateCategory addCategory={addCategory} />
+//       </div>
+
+//       <form onSubmit={handleSubmit} className="space-y-8 bg-white border rounded-md p-12">
+//         {/* Product Information Section */}
+//         <section>
+//           <h2 className="text-xl font-semibold mb-4">Product Information</h2>
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             <div>
+//               <Label htmlFor="category">Product Category</Label>
+//               <Select
+//                 onValueChange={(value) => setFormData({ ...formData, category: value })}
+//               >
+//                 <SelectTrigger className="w-full mt-1">
+//                   {formData.category || "Select category"}
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   {categories.map((category, index) => (
+//                     <SelectItem key={index} value={category}>
+//                       {category}
+//                     </SelectItem>
+//                   ))}
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+//             <div>
+//               <Label htmlFor="name">Product Name</Label>
+//               <Input
+//                 id="name"
+//                 name="name"
+//                 type="text"
+//                 placeholder="Enter product name"
+//                 value={formData.name}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+
+//             <div>
+//               <Label htmlFor="brand">Brand</Label>
+//               <Input
+//                 id="brand"
+//                 name="brand"
+//                 type="text"
+//                 placeholder="Enter brand name"
+//                 value={formData.brand}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+
+//             <div>
+//               <Label htmlFor="dimensions">Dimensions</Label>
+//               <Input
+//                 id="dimensions"
+//                 name="dimensions"
+//                 type="text"
+//                 placeholder="Enter dimensions"
+//                 value={formData.dimensions}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+
+//             <div>
+//               <Label htmlFor="location">Location</Label>
+//               <Input
+//                 id="location"
+//                 name="location"
+//                 type="text"
+//                 placeholder="Enter location"
+//                 value={formData.location}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+
+//             <div>
+//               <Label htmlFor="image">Product Image</Label>
+//               <Input
+//                 id="image"
+//                 name="image"
+//                 type="file"
+//                 accept="image/*"
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+//             <div>
+//               <Label htmlFor="dateOfEntry">Date of Entry</Label>
+//               <Input
+//                 id="dateOfEntry"
+//                 name="dateOfEntry"
+//                 type="date"
+//                 value={formData.dateOfEntry}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+//           </div>
+//           <div className="mt-8 justify-between flex ">
+//           <Button className="bg-black text-white p-4">Update </Button>
+        
+//         </div>
+//         </section>
+
+//         <Separator />
+
+//         {/* Status and Condition Section */}
+//         <section>
+//           <h2 className="text-xl font-semibold mb-4">Status and Condition</h2>
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             <div>
+//               <Label htmlFor="status">Status</Label>
+//               <Select
+//                 onValueChange={(value) => setFormData({ ...formData, status: value })}
+//               >
+//                 <SelectTrigger className="w-full mt-1">
+//                   {formData.status || "Select status"}
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="available">Available</SelectItem>
+//                   <SelectItem value="borrowed">Borrowed</SelectItem>
+//                   <SelectItem value="stolen">Stolen</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+//             <div>
+//               <Label htmlFor="condition">Condition</Label>
+//               <Select
+//                 onValueChange={(value) => setFormData({ ...formData, condition: value })}
+//               >
+//                 <SelectTrigger className="w-full mt-1">
+//                   {formData.condition || "Select condition"}
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="new">New</SelectItem>
+//                   <SelectItem value="used">Used</SelectItem>
+//                   <SelectItem value="damaged">Damaged</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+           
+//           </div>
+//           <div className="mt-8 justify-between flex ">
+//           <Button className="bg-black text-white p-4">Update status</Button>
+//           <Button className="bg-black text-white p-4">Update condition</Button>
+//         </div>
+//         </section>
+
+//         <Separator />
+
+//         {/* Borrower Details Section */}
+//         <section>
+//           <h2 className="text-xl font-semibold mb-4">Borrower Details (Optional)</h2>
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             <div>
+//               <Label htmlFor="borrowerName">Borrower Name</Label>
+//               <Input
+//                 id="borrowerName"
+//                 name="borrowerName"
+//                 type="text"
+//                 placeholder="Enter borrower name"
+//                 value={formData.borrowedBy.borrowerName}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+
+//             <div>
+//               <Label htmlFor="nationalId">National ID</Label>
+//               <Input
+//                 id="nationalId"
+//                 name="nationalId"
+//                 type="text"
+//                 placeholder="Enter national ID"
+//                 value={formData.borrowedBy.nationalId}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+
+//             <div>
+//               <Label htmlFor="productId">Product ID</Label>
+//               <Input
+//                 id="productId"
+//                 name="productId"
+//                 type="text"
+//                 placeholder="Enter product ID"
+//                 value={formData.borrowedBy.productId}
+//                 onChange={handleChange}
+//                 className="mt-1"
+//               />
+//             </div>
+
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <Label htmlFor="borrowingDate">Borrowing Date</Label>
+//                 <Input
+//                   id="borrowingDate"
+//                   name="borrowingDate"
+//                   type="date"
+//                   value={formData.borrowedBy.borrowingDate}
+//                   onChange={handleChange}
+//                   className="mt-1"
+//                 />
+//               </div>
+//               <div>
+//                 <Label htmlFor="returningDate">Returning Date</Label>
+//                 <Input
+//                   id="returningDate"
+//                   name="returningDate"
+//                   type="date"
+//                   value={formData.borrowedBy.returningDate}
+//                   onChange={handleChange}
+//                   className="mt-1"
+//                 />
+//               </div>
+//             </div>
+//           </div>
+//         </section>
+
+//         <div className="mt-8 justify-between flex ">
+//           <Button className="bg-black text-white p-4">Mark as borrowed</Button>
+//           <Button className="bg-black text-white p-4">Mark as returned</Button>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default AddProductForm;
