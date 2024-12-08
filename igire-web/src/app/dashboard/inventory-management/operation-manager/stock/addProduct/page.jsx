@@ -2,7 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import CreateCategory from "../../categories/CreateCategory";
 
@@ -38,11 +44,14 @@ const AddProductForm = () => {
           throw new Error("Unauthorized. Please log in.");
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/Inventory/category/getAll`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/api/Inventory/category/getAll`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch categories.");
@@ -98,10 +107,13 @@ const AddProductForm = () => {
     productData.append("productImage", formData.image);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/Inventory/product/create-product`, {
-        method: "POST",
-        body: productData,
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/Inventory/product/create-product`,
+        {
+          method: "POST",
+          body: productData,
+        }
+      );
 
       if (response.ok) {
         alert("Product added successfully!");
@@ -125,7 +137,10 @@ const AddProductForm = () => {
         <CreateCategory />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-white border rounded-xl p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-8 bg-white border rounded-xl p-6"
+      >
         <section>
           <h2 className="text-xl font-semibold mb-4">Product Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -145,12 +160,15 @@ const AddProductForm = () => {
             <div>
               <Label htmlFor="category">Product Category</Label>
               <Select
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
                 value={formData.category}
               >
                 <SelectTrigger className="w-full mt-1">
                   {formData.category
-                    ? categories.find((cat) => cat._id === formData.category)?.categoryName || "Select category"
+                    ? categories.find((cat) => cat._id === formData.category)
+                        ?.categoryName || "Select category"
                     : "Select category"}
                 </SelectTrigger>
                 <SelectContent>
@@ -213,6 +231,24 @@ const AddProductForm = () => {
             </div>
 
             <div>
+            <Label htmlFor="status">Status</Label>
+              <Select onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
+                value={formData.status}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={formData.borrow}>Borrowed</SelectItem>
+                  <SelectItem value={formData.stolen}>Stolen</SelectItem>
+                  <SelectItem value={formData.available}>available</SelectItem>
+                  <SelectItem value={formData.damaged}>damaged</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
@@ -251,7 +287,11 @@ const AddProductForm = () => {
           </div>
 
           <div className="mt-8 w-full">
-            <Button type="submit" className="bg-black w-full text-white" disabled={loading}>
+            <Button
+              type="submit"
+              className="bg-black w-full text-white"
+              disabled={loading}
+            >
               {loading ? "Adding..." : "Add"}
             </Button>
           </div>
@@ -262,4 +302,3 @@ const AddProductForm = () => {
 };
 
 export default AddProductForm;
-

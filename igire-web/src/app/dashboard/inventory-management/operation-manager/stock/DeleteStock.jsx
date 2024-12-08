@@ -1,12 +1,48 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { IoWarning } from "react-icons/io5";
 
-export default function DeleteStock({ open, onOpenChange, onDelete, onClose }) {
-  
+export default function DeleteStock({ open, onOpenChange, onClose }) {
+  const [products, setProducts] = useState([]);
+  const [removeProductId, setRemoveProductId] = useState(null);
+
+  const removeProduct = async () => {
+    if (removeProductId) {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Unauthorized. Please log in.");
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/Inventory/product/${removeProductId}`,
+          { 
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to delete product.");
+        }
+
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product._id !== removeProductId)
+        );
+        setRemoveProductId(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm bg-white p-6">
@@ -21,8 +57,8 @@ export default function DeleteStock({ open, onOpenChange, onDelete, onClose }) {
           </div>
         </div>
         <DialogFooter className="mt-6">
-          <Button onClick={onDelete} className="bg-red-500 text-white px-4 py-2">Yes, Delete</Button>
-          <Button onClick={onClose} className="bg-gray-300 px-4 py-2">Cancel</Button>
+          <Button onClick={()=> removeProduct} className="bg-red-500 text-white px-4 py-2">Yes, Delete</Button>
+          <Button onClick={() => setRemoveProductId(null)} className="bg-gray-300 px-4 py-2">Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

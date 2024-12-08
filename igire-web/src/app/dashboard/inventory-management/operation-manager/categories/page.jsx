@@ -70,13 +70,14 @@ const CategoriesPage = () => {
 
   const updateCategory = async () => {
     if (editCategory && editCategory.categoryName.trim()) {
+      console.log("iiiiiiiiiiiiiii",editCategory._id)
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
         if (!token) {
           throw new Error("Unauthorized. Please log in.");
         }
-
+        
         const response = await fetch(
           `${API_BASE_URL}/api/Inventory/category/update/${editCategory._id}`,
           {

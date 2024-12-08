@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
 import axios from "axios";
-import  {jwtDecode} from "jwt-decode";
+import  { jwtDecode } from "jwt-decode";
 
 const LogIn = () => {
   const [email, setEmail] = useState("");

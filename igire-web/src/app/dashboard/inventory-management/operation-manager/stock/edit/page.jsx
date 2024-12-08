@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import CreateCategory from "../../categories/createCategory";
+import CreateCategory from "../../categories/CreateCategory";
 const AddProductForm = () => {
   const [formData, setFormData] = useState({
     category: "",

@@ -26,14 +26,14 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
-import EditStock from "./EditStock";
-import DeleteStock from "./DeleteStock";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useRouter } from "next/navigation";
+import DeleteStock from "./DeleteStock";
 
 export default function Stock() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -41,29 +41,82 @@ export default function Stock() {
 
   const router = useRouter();
 
+  // Fetch products and categories
   useEffect(() => {
-    fetch("https://iro-website-bn-1.onrender.com/api/Inventory/users")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetched products:", product.data); 
-        if (data) {
-          setUsers(data); 
-          setFilteredUsers(data); 
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        console.error("Authentication token not found. Please log in.");
+        return;
+      }
+
+      try {
+        // Fetch products
+        const productResponse = await fetch(
+          "https://iro-website-bn-1.onrender.com/api/Inventory/product/getAll",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const productResult = await productResponse.json();
+
+        // Fetch categories
+        const categoryResponse = await fetch(
+          "https://iro-website-bn-1.onrender.com/api/Inventory/category/getAll",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const categoryResult = await categoryResponse.json();
+
+        if (productResponse.ok && categoryResponse.ok) {
+          setProducts(productResult.data || []);
+          setCategories(categoryResult.data || []);
+        } else {
+          console.error(
+            "Error fetching data:",
+            productResult.message || categoryResult.message
+          );
         }
-      })
-      .catch((error) => console.error("Error fetching products:", error));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  
+  // Map category IDs to names
+  const categoryMap = useMemo(() => {
+    const map = {};
+    categories.forEach((category) => {
+      map[category._id] = category.categoryName;
+    });
+    return map;
+  }, [categories]);
+
+
+  const productsWithCategoryName = useMemo(() => {
+    return products.map((product) => ({
+      ...product,
+      categoryName: categoryMap[product.categoryId] || "Unknown",
+    }));
+  }, [products, categoryMap]);
+
+
   const filteredData = useMemo(() => {
-    return products.filter(
+    return productsWithCategoryName.filter(
       (item) =>
         item.name.toLowerCase().includes(productSearchTerm.toLowerCase()) &&
         (locationFilter === "" || item.location.includes(locationFilter))
     );
-  }, [productSearchTerm, locationFilter, products]);
+  }, [productSearchTerm, locationFilter, productsWithCategoryName]);
 
-  // Export to PDF
   const handleExportPDF = () => {
     const doc = new jsPDF();
     const tableHeaders = [
@@ -71,19 +124,19 @@ export default function Stock() {
       "Name",
       "Brand",
       "Dimensions",
-      "Category",
+      "Category Name",
       "Location",
       "Status",
       "Condition",
       "Image",
     ];
 
-    const rows = products.map((item) => [
+    const rows = filteredData.map((item) => [
       item.prod_id || "N/A",
       item.name || "N/A",
       item.brand || "N/A",
       item.dimensions || "N/A",
-      item.categoryId || "N/A",
+      item.categoryName || "N/A",
       item.location || "N/A",
       item.status || "N/A",
       item.condition || "N/A",
@@ -131,6 +184,10 @@ export default function Stock() {
         header: "Dimensions",
       },
       {
+        accessorKey: "categoryName",
+        header: "Category Name",
+      },
+      {
         accessorKey: "location",
         header: "Location",
       },
@@ -165,7 +222,7 @@ export default function Stock() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  router.push(`/edit/${row.original.prod_id}`);
+                  router.push(`stock/edit/?${row.original.prod_id}`);
                 }}
               >
                 Edit
@@ -194,122 +251,111 @@ export default function Stock() {
 
   return (
     <div className="w-full px-6 font-ibm">
-  {/* Search and Filters */}
-  <div className="flex flex-col sm:flex-row items-center justify-between mt-14 md:mt-10 mb-3 space-y-4 sm:space-y-0">
-    <p className="py-4 text-xl font-semibold">Stock Overview</p>
-    <div className="relative max-w-lg w-full sm:w-auto">
-      <HiOutlineSearch
-        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-        size={20}
-      />
-      <input
-        type="text"
-        placeholder="Search product..."
-        value={productSearchTerm}
-        onChange={(e) => setProductSearchTerm(e.target.value)}
-        className="border pl-10 pr-20 rounded-md py-2 w-full"
-      />
-    </div>
-    <div className="flex space-x-2">
-      <select
-        className="border px-1 text-[15px] py-2 rounded-md"
-        value={locationFilter}
-        onChange={(e) => setLocationFilter(e.target.value)}
-      >
-        <option value="">Filter Location</option>
-        <option value="Class 1">Class 1</option>
-        <option value="Class 2">Class 2</option>
-        <option value="Office">Office</option>
-      </select>
-      <button
-        onClick={handleExportPDF}
-        className="flex items-center text-[15px] px-1 py-2 border rounded-md bg-white"
-      >
-        <FaFileDownload className="mr-1 sm:mr-0" />
-        <span className="hidden sm:inline">Download</span>
-      </button>
-      <a href="stock/addProduct">
-        <button className="flex items-center px-1 py-2 text-[15px] border rounded-md bg-black text-white">
-          <FaPlusCircle className="mr-1 sm:mr-0" />
-          <span className="hidden sm:inline">Add stock</span>
-        </button>
-      </a>
-    </div>
-  </div>
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row items-center justify-between mt-14 md:mt-10 mb-3 space-y-4 sm:space-y-0">
+        <p className="py-4 text-xl font-semibold">Stock Overview</p>
+        <div className="relative max-w-lg w-full sm:w-auto">
+          <HiOutlineSearch
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={20}
+          />
+          <input
+            type="text"
+            placeholder="Search product..."
+            value={productSearchTerm}
+            onChange={(e) => setProductSearchTerm(e.target.value)}
+            className="border pl-10 pr-20 rounded-md py-2 w-full"
+          />
+        </div>
+        <div className="flex space-x-2">
+          <select
+            className="border px-1 text-[15px] py-2 rounded-md"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          >
+            <option value="">Filter Location</option>
+            <option value="Class 1">Class 1</option>
+            <option value="Class 2">Class 2</option>
+            <option value="Office">Office</option>
+          </select>
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center text-[15px] px-1 py-2 border rounded-md bg-white"
+          >
+            <FaFileDownload className="mr-1 sm:mr-0" />
+            <span className="hidden sm:inline">Download</span>
+          </button>
+          <a href="stock/addProduct">
+            <button className="flex items-center px-1 py-2 text-[15px] border rounded-md bg-black text-white">
+              <FaPlusCircle className="mr-1 sm:mr-0" />
+              <span className="hidden sm:inline">Add stock</span>
+            </button>
+          </a>
+        </div>
+      </div>
 
-  {/* Table Container for Scroll */}
-  <div className="rounded-md border bg-white mt-12 ">
-    <Table className="min-w-[600px]">
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-              </TableHead>
+      {/* Table */}
+      <div className="rounded-md border bg-white mt-12">
+        <Table className="min-w-[600px]">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
             ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
             ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </div>
+          </TableBody>
+        </Table>
+      </div>
 
-  {/* Pagination */}
-  <div className="flex items-center justify-end mt-4">
-    <Button
-      onClick={() => table.previousPage()}
-      disabled={!table.getCanPreviousPage()}
-      className="px-1 py-1 flex items-center"
-    >
-      <BiChevronLeft size={20} />
-    </Button>
-    <span className="mx-2">
-      Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-    </span>
-    <Button
-      onClick={() => table.nextPage()}
-      disabled={!table.getCanNextPage()}
-      className="px-1 py-1 flex items-center"
-    >
-      <BiChevronRight size={20} />
-    </Button>
-</div>
-{/* <EditStock
-  open={openEditDialog}
-  onOpenChange={setOpenEditDialog}
-  selectedRowData={selectedRowData}
-  onSave={() => {
-    // Save logic goes here
-    setOpenEditDialog(false);
-  }}
-/> */}
+      {/* Pagination */}
+      <div className="flex items-center justify-end mt-4">
+        <Button
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+          className="px-1 py-1 flex items-center"
+        >
+          <BiChevronLeft size={20} />
+        </Button>
+        <span className="mx-2">
+          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        </span>
+        <Button
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+          className="px-1 py-1 flex items-center"
+        >
+          <BiChevronRight size={20} />
+        </Button>
+      </div>
 
-<DeleteStock
-  open={openDeleteDialog}
-  onOpenChange={setOpenDeleteDialog}
-  onDelete={() => {
-    // Delete logic goes here
-    setOpenDeleteDialog(false);
-  }}
-/>
-
-
+      <DeleteStock
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onDelete={() => {
+          // Delete logic goes here
+          setOpenDeleteDialog(false);
+        }}
+      />
     </div>
   );
 }
